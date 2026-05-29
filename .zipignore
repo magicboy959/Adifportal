@@ -1,0 +1,16 @@
+# Files and folders to exclude from deployment zip
+node_modules/
+.next/
+out/
+.env*
+dev.db
+*.log
+.vscode/
+.git/
+.gitignore
+package-lock.json
+yarn.lock
+*.gz
+*.sql.gz
+coverage/
+.DS_Store

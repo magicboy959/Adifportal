@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 219 89% 24%;
+  --muted: 210 20% 97%;
+  --muted-foreground: 220 9% 46%;
+  --border: 214 26% 90%;
+}
+
+.dark {
+  --background: 219 89% 16%;
+  --foreground: 0 0% 98%;
+  --muted: 219 58% 18%;
+  --muted-foreground: 214 20% 78%;
+  --border: 219 45% 28%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  text-rendering: optimizeLegibility;
+}
+
+[dir="rtl"] {
+  font-family: var(--font-arabic), var(--font-geist-sans), ui-sans-serif, system-ui;
+  text-align: right;
+}
+
+::selection {
+  background: #f28c28;
+  color: #072d75;
+}
+
+.focus-ring {
+  @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange;
+}
