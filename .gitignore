@@ -1,9 +1,5 @@
-.next
-node_modules
-out
-dist
-dev.db
-.env
-.env*.local
-*.tsbuildinfo
+node_modules/
+.next/
 .DS_Store
+.env.local
+.env
