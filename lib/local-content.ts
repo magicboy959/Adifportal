@@ -98,19 +98,33 @@ function normalizePublicationDate<T extends { date: string }>(publication: T): T
   };
 }
 
-function normalizeMediaItem<T extends { slug?: string | null; excerpt?: string | null; publishedAt?: string | null; image?: string | null }>(item: T): Omit<T, "slug" | "excerpt" | "publishedAt" | "image"> & {
-  slug?: string;
-  excerpt?: string;
-  publishedAt?: string;
-  image?: { asset?: { _ref: string } } | null;
+function normalizeMediaItem<
+T extends {
+slug?: string | null;
+excerpt?: string | null;
+publishedAt?: string | null;
+image?: string | null;
+}
+>(
+item: T
+): Omit<T, "slug" | "excerpt" | "publishedAt" | "image"> & {
+slug?: string;
+excerpt?: string;
+publishedAt?: string;
+image?: { asset?: { _ref: string } } | null;
 } {
-  return {
-    ...item,
-    slug: item.slug ?? undefined,
-    excerpt: item.excerpt ?? undefined,
-    publishedAt: item.publishedAt ?? undefined,
-    image: item.image && typeof item.image === "string" ? null : item.image
-  } as any;
+return {
+...item,
+slug: item.slug ?? undefined,
+excerpt: item.excerpt ?? undefined,
+publishedAt: item.publishedAt ?? undefined,
+image: item.image && typeof item.image === "string" ? null : item.image
+} as Omit<T, "slug" | "excerpt" | "publishedAt" | "image"> & {
+slug?: string;
+excerpt?: string;
+publishedAt?: string;
+image?: { asset?: { _ref: string } } | null;
+};
 }
 
 export async function getPublications(locale: Locale): Promise<Publication[]> {
