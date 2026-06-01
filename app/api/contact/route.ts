@@ -92,6 +92,48 @@ function getTransporter() {
   });
 }
 
+async function sendEmailMessage(emailBody: ReturnType<typeof createEmailBody>, replyTo: string) {
+  const apiUrl = process.env.SMTP_API_URL;
+  const apiKey = process.env.SMTP_API_KEY;
+
+  if (apiUrl && apiKey) {
+    const from = process.env.SMTP_FROM || `ADIF Website <${process.env.SMTP_USER || 'no-reply@adiforganization.org'}>`;
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        from,
+        to: recipient,
+        subject: emailBody.subject,
+        text: emailBody.text,
+        html: emailBody.html,
+        replyTo
+      })
+    });
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      throw new Error(`Email API request failed: ${response.status} ${response.statusText} ${bodyText}`);
+    }
+
+    return;
+  }
+
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: `ADIF Website <${process.env.SMTP_USER}>`,
+    to: recipient,
+    subject: emailBody.subject,
+    text: emailBody.text,
+    html: emailBody.html,
+    replyTo
+  });
+}
+
 function createEmailBody(payload: ContactFormData) {
   const messageList = [
     `<p><strong>Name:</strong> ${payload.name}</p>`,
@@ -140,7 +182,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const transporter = getTransporter();
     const emailBody = createEmailBody(validation);
 
     await prisma.contactInquiry.create({
@@ -154,14 +195,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    await transporter.sendMail({
-      from: `ADIF Website <${process.env.SMTP_USER}>`,
-      to: recipient,
-      subject: emailBody.subject,
-      text: emailBody.text,
-      html: emailBody.html,
-      replyTo: validation.email
-    });
+    await sendEmailMessage(emailBody, validation.email);
 
     return NextResponse.json({ success: true });
   } catch (error) {

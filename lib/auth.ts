@@ -24,6 +24,16 @@ export async function verifyPassword(
   return derived === hash;
 }
 
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("Missing JWT_SECRET environment variable.");
+  }
+
+  return secret;
+}
+
 export function generateToken(userId: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64').replace(/=/g, '');
   const payload = Buffer.from(
@@ -37,7 +47,7 @@ export function generateToken(userId: string): string {
     .replace(/=/g, '');
 
   const signature = crypto
-    .createHmac('sha256', process.env.JWT_SECRET || 'your-secret-key-change-in-production')
+    .createHmac('sha256', getJwtSecret())
     .update(`${header}.${payload}`)
     .digest('base64')
     .replace(/=/g, '');
@@ -51,7 +61,7 @@ export function verifyToken(token: string): { userId: string } | null {
     
     // Verify signature
     const verifySignature = crypto
-      .createHmac('sha256', process.env.JWT_SECRET || 'your-secret-key-change-in-production')
+      .createHmac('sha256', getJwtSecret())
       .update(`${header}.${payload}`)
       .digest('base64')
       .replace(/=/g, '');

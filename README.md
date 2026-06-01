@@ -111,6 +111,57 @@ The contact API also accepts `SMTP_PASSWORD` as an alternate password env variab
 
 Do not commit the SMTP password. Static export builds do not include API routes, so the contact form email endpoint requires a Next.js server deployment.
 
+## Deployment Environment Variables
+
+When deploying to a hosting platform, set these environment variables:
+
+### Required
+
+```bash
+# Application
+NODE_ENV=production
+JWT_SECRET=<your-strong-random-secret>  # Generate: openssl rand -base64 32
+
+# Database (if using platform's managed MySQL)
+DB_HOST=<database-hostname>
+DB_PORT=3306
+DB_NAME=<database-name>
+DB_USER=<database-username>
+DB_PASSWORD=<database-password>
+
+# Alternative: Local SQLite (for VPS/Docker)
+DATABASE_URL=file:./dev.db
+```
+
+### Optional
+
+```bash
+# Contact form email via SMTP (traditional)
+SMTP_HOST=<smtp-server>
+SMTP_PORT=587
+SMTP_USER=<email-address>
+SMTP_PASSWORD=<password>
+SMTP_SECURE=true  # Set to "true" for port 465, omit for 587
+
+# Contact form email via HTTPS API (for restricted network environments)
+SMTP_API_URL=<https://email-api-endpoint>
+SMTP_API_KEY=<api-key>
+SMTP_FROM=<from-address>
+
+# Recipient overrides
+CONTACT_TO_EMAIL=<recipient-email>
+CONTACT_RECIPIENT=<recipient-email>  # Legacy fallback
+
+# Site configuration
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+**Notes:**
+- `JWT_SECRET` is required in production. The app will fail to start if missing.
+- For MySQL deployments, either set `DB_*` vars or `DATABASE_URL`.
+- Email can use SMTP (traditional) or HTTPS API (for restricted ports). If both are set, HTTPS API takes priority.
+- `NODE_ENV` must be `production` for proper security headers and build optimization.
+
 ## API Endpoints
 
 The site now exposes backend JSON endpoints for dynamic content and contact support:
