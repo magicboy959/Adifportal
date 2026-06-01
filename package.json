@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "export": "next build",
-    "start": "node server.js",
+    "start": "npm run build && node server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "prisma:generate": "prisma generate",
