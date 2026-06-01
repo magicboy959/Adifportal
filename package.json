@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "sh -lc 'if [ -z \"$DATABASE_URL\" ]; then export DATABASE_URL=file:./dev.db; fi; prisma generate && next build'",
     "export": "next build",
     "start": "npm run build && node server.js",
     "lint": "eslint .",
