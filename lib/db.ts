@@ -10,7 +10,18 @@ function buildDatabaseUrlFromEnv(): string | undefined {
     const pass = DB_PASSWORD ? encodeURIComponent(DB_PASSWORD) : '';
     return `mysql://${user}:${pass}@${DB_HOST}:${port}/${DB_NAME}`;
   }
-  return process.env.DATABASE_URL;
+  const envUrl = process.env.DATABASE_URL && process.env.DATABASE_URL.trim();
+
+  // Ignore placeholder templates like "mysql://${DB_USER}:..." which may be
+  // present in local .env files and cause Prisma to error during build.
+  if (!envUrl) return undefined;
+  if (envUrl.includes('${')) return undefined;
+
+  // Allow SQLite local files or fully-formed URLs.
+  if (envUrl.startsWith('file:') || envUrl.startsWith('sqlite:')) return envUrl;
+  if (envUrl.startsWith('mysql:') || envUrl.startsWith('postgres:') || envUrl.startsWith('postgresql:')) return envUrl;
+
+  return undefined;
 }
 
 const runtimeDbUrl = buildDatabaseUrlFromEnv();
