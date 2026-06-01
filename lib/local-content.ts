@@ -128,6 +128,16 @@ image?: { asset?: { _ref: string } } | null;
 }
 
 export async function getPublications(locale: Locale): Promise<Publication[]> {
+  // If no managed MySQL connection info is available, skip DB queries and
+  // return the local bundled content. This prevents build-time Prisma
+  // validation errors on platforms that inject DB credentials only at runtime.
+  const hasDbEnv = !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) ||
+    !!(process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('mysql://'));
+
+  if (!hasDbEnv) {
+    return locale === "ar" ? arabicPublications : englishPublications;
+  }
+
   try {
     const items = await prisma.publication.findMany({
       where: { language: locale },
@@ -150,6 +160,13 @@ export async function getPublicationPreview(locale: Locale, limit = 3): Promise<
 }
 
 export async function getMediaItems(locale: Locale): Promise<MediaItem[]> {
+  const hasDbEnv = !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) ||
+    !!(process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('mysql://'));
+
+  if (!hasDbEnv) {
+    return mediaItems[locale] ?? mediaItems.en;
+  }
+
   try {
     const items = await prisma.mediaItem.findMany({
       where: { language: locale },
