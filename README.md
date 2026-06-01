@@ -161,6 +161,20 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.com
 - For MySQL deployments, either set `DB_*` vars or `DATABASE_URL`.
 - Email can use SMTP (traditional) or HTTPS API (for restricted ports). If both are set, HTTPS API takes priority.
 - `NODE_ENV` must be `production` for proper security headers and build optimization.
+- `JWT_SECRET` protects the new admin portal and admin API routes.
+
+## Admin Portal
+
+Admin pages are available under `/admin` and use secure JWT authentication with a server cookie.
+
+- `/admin/login` — admin login page
+- `/admin/dashboard` — admin dashboard overview
+- `/admin/publications` — manage publications
+- `/admin/media` — manage media items
+- `/admin/contacts` — review contact inquiries
+- `/admin/users` — manage admin users
+
+New admin APIs are available under `/api/admin/*`.
 
 ## API Endpoints
 

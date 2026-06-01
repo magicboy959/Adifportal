@@ -6,7 +6,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  maxAge: 7 * 24 * 60 * 60, // 7 days
+  maxAge: 7 * 24 * 60 * 60,
 };
 
 export async function POST(request: NextRequest) {
@@ -14,10 +14,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = await request.json();
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     let user = await prisma.user.findUnique({
@@ -34,37 +31,25 @@ export async function POST(request: NextRequest) {
       });
     } else {
       const valid = await verifyPassword(password, user.password);
-
       if (!valid) {
-        return NextResponse.json(
-          { error: 'Invalid credentials' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
       }
 
       if (user.role !== 'admin') {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
       }
     }
 
     const token = generateToken(user.id);
     const response = NextResponse.json(
-      {
-        admin: { id: user.id, email: user.email, role: user.role },
-      },
+      { admin: { id: user.id, email: user.email, role: user.role } },
       { status: 200 }
     );
 
     response.cookies.set('auth_token', token, COOKIE_OPTIONS);
     return response;
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Login failed' },
-      { status: 500 }
-    );
+    console.error('Admin auth login error:', error);
+    return NextResponse.json({ error: 'Login failed' }, { status: 500 });
   }
 }

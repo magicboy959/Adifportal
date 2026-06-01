@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
 
 interface Publication {
   id: string;
@@ -28,11 +27,17 @@ interface ContactInquiry {
   createdAt: string;
 }
 
+interface AdminUser {
+  id: string;
+  email: string;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [publications, setPublications] = useState<Publication[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -42,30 +47,39 @@ export default function AdminDashboard() {
 
   async function fetchData() {
     try {
-      const [pubsRes, mediaRes, inquiriesRes] = await Promise.all([
-        fetch('/api/publications'),
-        fetch('/api/media'),
-        fetch('/api/inquiries'),
+      const [pubsRes, mediaRes, inquiriesRes, usersRes] = await Promise.all([
+        fetch('/api/admin/publications'),
+        fetch('/api/admin/media'),
+        fetch('/api/admin/contacts'),
+        fetch('/api/admin/users'),
       ]);
 
-      if (pubsRes.ok) setPublications(await pubsRes.json());
-      if (mediaRes.ok) setMedia(await mediaRes.json());
-      if (inquiriesRes.ok) setInquiries(await inquiriesRes.json());
+      if (pubsRes.ok) {
+        setPublications(await pubsRes.json());
+      }
+      if (mediaRes.ok) {
+        setMedia(await mediaRes.json());
+      }
+      if (inquiriesRes.ok) {
+        setInquiries(await inquiriesRes.json());
+      }
+      if (usersRes.ok) {
+        setUsers(await usersRes.json());
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching admin dashboard data:', error);
     } finally {
       setLoading(false);
     }
   }
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/admin/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
@@ -78,9 +92,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Tabs */}
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8" aria-label="Tabs">
             <button
@@ -123,10 +135,19 @@ export default function AdminDashboard() {
             >
               Contact Inquiries ({inquiries.length})
             </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'users'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Users ({users.length})
+            </button>
           </nav>
         </div>
 
-        {/* Content */}
         <div className="mt-6">
           {loading ? (
             <div className="text-center py-12">
@@ -134,43 +155,35 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <>
-              {/* Overview Tab */}
               {activeTab === 'overview' && (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
                   <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Total Publications
-                      </dt>
-                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">
-                        {publications.length}
-                      </dd>
+                      <dt className="text-sm font-medium text-gray-500">Total Publications</dt>
+                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">{publications.length}</dd>
                     </div>
                   </div>
                   <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Total Media Items
-                      </dt>
-                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">
-                        {media.length}
-                      </dd>
+                      <dt className="text-sm font-medium text-gray-500">Total Media Items</dt>
+                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">{media.length}</dd>
                     </div>
                   </div>
                   <div className="bg-white overflow-hidden shadow rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Contact Inquiries
-                      </dt>
-                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">
-                        {inquiries.length}
-                      </dd>
+                      <dt className="text-sm font-medium text-gray-500">Contact Inquiries</dt>
+                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">{inquiries.length}</dd>
+                    </div>
+                  </div>
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <dt className="text-sm font-medium text-gray-500">Admin Users</dt>
+                      <dd className="mt-1 text-3xl font-extrabold text-gray-900">{users.length}</dd>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Publications Tab */}
               {activeTab === 'publications' && (
                 <div className="bg-white shadow overflow-hidden sm:rounded-md">
                   <ul className="divide-y divide-gray-200">
@@ -178,12 +191,8 @@ export default function AdminDashboard() {
                       <li key={pub.id} className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {pub.title}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {pub.type} • {pub.date} • {pub.language}
-                            </p>
+                            <p className="text-sm font-medium text-gray-900">{pub.title}</p>
+                            <p className="text-sm text-gray-500">{pub.type} • {pub.date} • {pub.language}</p>
                           </div>
                         </div>
                       </li>
@@ -192,7 +201,6 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Media Tab */}
               {activeTab === 'media' && (
                 <div className="bg-white shadow overflow-hidden sm:rounded-md">
                   <ul className="divide-y divide-gray-200">
@@ -200,12 +208,8 @@ export default function AdminDashboard() {
                       <li key={item.id} className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {item.title}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {item.type} • {item.language}
-                            </p>
+                            <p className="text-sm font-medium text-gray-900">{item.title}</p>
+                            <p className="text-sm text-gray-500">{item.type} • {item.language}</p>
                           </div>
                         </div>
                       </li>
@@ -214,23 +218,28 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Inquiries Tab */}
               {activeTab === 'inquiries' && (
                 <div className="bg-white shadow overflow-hidden sm:rounded-md">
                   <ul className="divide-y divide-gray-200">
                     {inquiries.map((inquiry) => (
                       <li key={inquiry.id} className="px-4 py-4 sm:px-6">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {inquiry.name} ({inquiry.email})
-                          </p>
-                          <p className="mt-1 text-sm text-gray-600">
-                            {inquiry.message}
-                          </p>
-                          <p className="mt-1 text-xs text-gray-500">
-                            {new Date(inquiry.createdAt).toLocaleDateString()}
-                          </p>
+                          <p className="text-sm font-medium text-gray-900">{inquiry.name} ({inquiry.email})</p>
+                          <p className="mt-1 text-sm text-gray-600">{inquiry.message}</p>
+                          <p className="mt-1 text-xs text-gray-500">{new Date(inquiry.createdAt).toLocaleDateString()}</p>
                         </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === 'users' && (
+                <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                  <ul className="divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <li key={user.id} className="px-4 py-4 sm:px-6">
+                        <p className="text-sm font-medium text-gray-900">{user.email}</p>
                       </li>
                     ))}
                   </ul>

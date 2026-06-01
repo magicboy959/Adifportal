@@ -1,4 +1,7 @@
 import * as crypto from 'crypto';
+import { NextRequest } from 'next/server';
+import { prisma } from './db';
+import type { User } from '@prisma/client';
 
 const SALT_ROUNDS = 10;
 
@@ -82,4 +85,26 @@ export function verifyToken(token: string): { userId: string } | null {
   } catch (error) {
     return null;
   }
+}
+
+export function getAuthToken(request: NextRequest): string | null {
+  return request.cookies.get('auth_token')?.value ?? null;
+}
+
+export async function getAuthenticatedAdminUser(
+  request: NextRequest
+): Promise<User | null> {
+  const token = getAuthToken(request);
+  if (!token) return null;
+
+  const payload = verifyToken(token);
+  if (!payload) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+  });
+
+  if (!user || user.role !== 'admin') return null;
+
+  return user;
 }
